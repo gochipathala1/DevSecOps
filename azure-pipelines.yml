@@ -9,6 +9,52 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  dockerRegistryServiceConnection: 'your-docker-registry-connection'  # Replace with your Docker registry service connection name
+  dockerImageName: 'your-docker-image-name'  # Replace with your Docker image name
+  dockerfilePath: './Dockerfile'  # Adjust the path to your Dockerfile
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildDockerImage
+    displayName: 'Build Docker Image'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+        addToPath: true
+
+    - script: |
+        docker build -t $(dockerImageName):$(Build.BuildId) -f $(dockerfilePath) .
+        docker push $(dockerImageName):$(Build.BuildId)
+      displayName: 'Build and Push Docker Image'
+
+- stage: Deploy
+  jobs:
+  - job: DeployToAzureContainerRegistry
+    displayName: 'Deploy to Azure Container Registry'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+        addToPath: true
+
+    - script: |
+        docker login -u $(dockerRegistryServiceConnection) -p $(dockerRegistryServiceConnectionPassword) yourdockerregistry.azurecr.io
+        docker pull $(dockerImageName):$(Build.BuildId)
+        docker tag $(dockerImageName):$(Build.BuildId) yourdockerregistry.azurecr.io/$(dockerImageName):$(Build.BuildId)
+        docker push yourdockerregistry.azurecr.io/$(dockerImageName):$(Build.BuildId)
+      displayName: 'Login to Docker Registry and Push Image'
+
+    - task: AzureWebAppContainer@1
+      inputs:
+        azureSubscription: 'your-azure-subscription'  # Replace with your Azure subscription name or service connection
+        appName: 'your-web-app-name'  # Replace with your Azure Web App name
+        containers: 'yourdockerregistry.azurecr.io/$(dockerImageName):$(Build.BuildId)'
+        multiContainerConfigFile: ''
+        appSettings: ''
+
 steps:
 - script: echo Hello, world!
   displayName: 'Run a one-line script'
