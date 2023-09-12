@@ -23,6 +23,12 @@ jobs:
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
         if: runner.os == 'Linux' # Only for Linux runners
 
+      - name: Check Azure CLI Version
+        run: az --version
+
+      - name: Debug Azure CLI Credentials
+        run: echo "${{ secrets.AZURE_CREDENTIALS }}"
+
       - name: Azure Login
         uses: azure/login@v1
         with:
