@@ -1,9 +1,10 @@
-on:
-  release:
-    types: [published]
-    branches: [main]
+name: Terraform Azure CICD
 
-name: On Release Main
+on:
+  push:
+    branches:
+      - main  # Adjust the branch name as needed
+  workflow_dispatch:
 
 jobs:
   terraform:
