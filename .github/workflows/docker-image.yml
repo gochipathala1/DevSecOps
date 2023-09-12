@@ -1,9 +1,9 @@
-name: Terraform Azure CI/CD
+name: Terraform Azure CICD
 
 on:
   push:
     branches:
-      - main
+      - main  # Adjust the branch name as needed
 
 jobs:
   terraform:
@@ -11,28 +11,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.5.7  # Adjust to your desired Terraform version
 
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-        if: runner.os == 'Linux' # Only for Linux runners
-
-      - name: Check Azure CLI Version
-        run: az --version
-
-      - name: Debug Azure CLI Credentials
-        run: echo "${{ secrets.AZURE_CREDENTIALS }}"
-
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
 
       - name: Initialize Terraform
         run: terraform init
@@ -40,14 +30,12 @@ jobs:
       - name: Validate Terraform
         run: terraform validate
 
-      - name: Apply Terraform
-        run: |
-          terraform plan -out=tfplan
-          terraform apply -auto-approve tfplan
+      - name: Plan Terraform Changes
+        run: terraform plan -out=tfplan
 
-      # If you want to destroy resources after the workflow, you can uncomment the following steps.
-      # - name: Destroy Terraform
-      #   run: |
-      #     terraform plan -destroy -out=tfdestroy
-      #     terraform apply -auto-approve tfdestroy
+      - name: Apply Terraform Changes
+        run: terraform apply -auto-approve tfplan
 
+      # Optional: Uncomment the following steps if you want to destroy resources after the workflow.
+      # - name: Destroy Terraform Resources
+      #   run: terraform destroy -auto-approve
