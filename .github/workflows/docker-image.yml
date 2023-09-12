@@ -54,7 +54,7 @@ jobs:
 
       - name: Terraform plan
         id: plan
-        run: terraform plan -var-file="./${{ env.ENV }}/terraform.tfvars"
+        run: terraform plan -var-file="./env/${{ env.ENV }}/terraform.tfvars"
 
       - name: Apply Terraform Changes
-        run: terraform apply -auto-approve -var-file="./${{ env.ENV }}/terraform.tfvars"
+        run: terraform apply -auto-approve -var-file="./env/${{ env.ENV }}/terraform.tfvars"
