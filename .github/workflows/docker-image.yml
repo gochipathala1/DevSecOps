@@ -1,0 +1,45 @@
+name: Terraform Azure CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag AZ-image:$(date +%s)
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.6.0  # Adjust to your desired Terraform version
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Validate Terraform
+        run: terraform validate
+
+      - name: Apply Terraform
+        run: |
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
+
+      # If you want to destroy resources after the workflow, you can uncomment the following steps.
+      # - name: Destroy Terraform
+      #   run: |
+      #     terraform plan -destroy -out=tfdestroy
+      #     terraform apply -auto-approve tfdestroy
+
