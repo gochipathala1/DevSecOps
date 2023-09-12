@@ -16,6 +16,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       TF_VERSION: 1.3.9
+      ENV: dev
 
     defaults:
       run:
@@ -28,6 +29,7 @@ jobs:
       - name: Deploy state bucket
         run: |
           set -a 
+          ls -lrt 
           az login --service-principal \
             -u ${{ secrets.ARM_CLIENT_ID }} \
             -p ${{ secrets.ARM_CLIENT_SECRET }} \
@@ -52,7 +54,7 @@ jobs:
 
       - name: Terraform plan
         id: plan
-        run: terraform plan -no-color
+        run: terraform plan -var-file="./${{ env.ENV }}/terraform.tfvars"
 
       - name: Apply Terraform Changes
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -var-file="./${{ env.ENV }}/terraform.tfvars"
